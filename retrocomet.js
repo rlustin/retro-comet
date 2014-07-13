@@ -39,7 +39,7 @@ function RetroComet() {
   /**
    * Closes the express server
    */
-  this.die = function(){
+  this.die = function() {
     if (server) {
       server.close();
     }
@@ -47,38 +47,65 @@ function RetroComet() {
 
   app.use(bodyParser());
   app.set('views', __dirname + '/views');
-  app.set('view options', { layout: false });
+  app.set('view options', {
+    layout: false
+  });
   app.set('view engine', 'jade');
 
   /**
    * Entry point for getting the access token.
    */
-  app.get('/login', function(req, res){
+  app.get('/login', function(req, res) {
     // generate consent page url
     var url = _this.client.generateAuthUrl({
-      access_type: 'offline'
-      scope: {'https://www.googleapis.com/auth/plus.me',
-             'https://mail.google.com/',
-             'https://www.googleapis.com/auth/gmail.modify',
-             'https://www.googleapis.com/auth/gmail.readonly'}
+      access_type: 'offline', // will return a refresh token
+      scope: 'https://www.googleapis.com/auth/gmail.readonly'
     });
 
     res.redirect(url);
   });
 
-  app.get('/token', function(req, res){
+  app.get('/token', function(req, res) {
+    console.log("COUCOU");
     code = req.query.code;
     // request access token
     _this.client.getToken(code, function(err, tokens) {
       // set tokens to the client
+      console.log('Token: ', tokens);
       _this.client.setCredentials(tokens);
     });
 
     res.redirect('/profile');
   });
 
-  app.get('/profile', function(req, res){
-    res.render("main");
+  app.get('/profile', function(req, res) {
+    //var request = gapi.client.gmail.users.labels.list({
+    //});
+    //res.render("main");
+    //  "userId": userId
+    console.log('Client: ', _this.client);
+    googleapis
+      .discover('gmail', 'v1')
+      .withAuthClient(_this.client)
+      .execute(function(err, client) {
+        //console.log('client: ', client);
+        if (err) {
+          console.log('Problem during the client discovery (1).', err);
+          return;
+        }
+        var params = {
+          userId: 'me'
+        };
+        var getUrlReq = client.gmail.users.labels.list(params);
+
+        getUrlReq.execute(function(err, response) {
+          if (err) {
+            console.log('Problem during the client discovery (2).', err);
+            return;
+          }
+          console.log('LABELS ARE: ', response);
+        });
+      });
   });
 
 }
