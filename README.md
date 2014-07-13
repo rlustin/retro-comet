@@ -1,4 +1,5 @@
 retro-commet
 ============
 
-Retro commet
+Retro commet - yes, we're bored.
+
