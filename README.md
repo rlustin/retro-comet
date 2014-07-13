@@ -1,5 +1,5 @@
-retro-commet
+retro-comet
 ============
 
-Retro commet - yes, we're bored.
+Retro comet - yes, we're bored.
 
