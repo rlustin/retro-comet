@@ -66,32 +66,15 @@ function RetroComet() {
     res.redirect(url);
   });
 
-  /**
-   * Renders the page for when a user has been authenticated by Google
-   */
   app.get('/token', function(req, res){
-    res.render("auth");
-  });
-
-  /**
-   * Since the Google code is only available in the browser URL fragment,
-   * it is not available server-side so we need to post it to the server from the browser.
-   * This is the entry point for persisting that token
-   */
-  app.post('/token', function(req, res){
-    var hash = req.body.hash;
-    var codeField = "code=";
-    var code = hash.substring(hash.indexOf(codeField) + codeField.length);
-
+    code = req.query.code;
     // request access token
     _this.client.getToken(code, function(err, tokens) {
       // set tokens to the client
       _this.client.setCredentials(tokens);
     });
 
-    res.json({
-      redirect: '/profile'
-    });
+    res.redirect('/profile');
   });
 
   app.get('/profile', function(req, res){
