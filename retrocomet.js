@@ -21,7 +21,7 @@ function RetroComet() {
   this.clientSecret = null;
 
   // OAuth2Client
-  this.client = null;
+  this.auth = null;
 
   /**
    * The port on which the express server will listen on
@@ -32,7 +32,7 @@ function RetroComet() {
    * Starts the express server
    */
   this.live = function() {
-    this.client = new OAuth2Client(this.clientId, this.clientSecret, 'http://localhost:' + _this.port + '/token');
+    _this.auth = new OAuth2Client(this.clientId, this.clientSecret, 'http://localhost:' + _this.port + '/token');
     server = app.listen(this.port);
   };
 
@@ -57,7 +57,7 @@ function RetroComet() {
    */
   app.get('/login', function(req, res) {
     // generate consent page url
-    var url = _this.client.generateAuthUrl({
+    var url = _this.auth.generateAuthUrl({
       access_type: 'offline', // will return a refresh token
       scope: 'https://www.googleapis.com/auth/gmail.readonly'
     });
@@ -66,29 +66,20 @@ function RetroComet() {
   });
 
   app.get('/token', function(req, res) {
-    console.log("COUCOU");
     code = req.query.code;
     // request access token
-    _this.client.getToken(code, function(err, tokens) {
+    _this.auth.getToken(code, function(err, tokens) {
       // set tokens to the client
-      console.log('Token: ', tokens);
-      _this.client.setCredentials(tokens);
+      _this.auth.credentials = tokens;
+      res.redirect('/profile');
     });
-
-    res.redirect('/profile');
   });
 
   app.get('/profile', function(req, res) {
-    //var request = gapi.client.gmail.users.labels.list({
-    //});
-    //res.render("main");
-    //  "userId": userId
-    console.log('Client: ', _this.client);
     googleapis
       .discover('gmail', 'v1')
-      .withAuthClient(_this.client)
+      .withAuthClient(_this.auth)
       .execute(function(err, client) {
-        //console.log('client: ', client);
         if (err) {
           console.log('Problem during the client discovery (1).', err);
           return;
@@ -96,14 +87,16 @@ function RetroComet() {
         var params = {
           userId: 'me'
         };
-        var getUrlReq = client.gmail.users.labels.list(params);
 
-        getUrlReq.execute(function(err, response) {
+        client
+          .gmail.users.labels.list(params)
+          .withAuthClient(_this.auth)
+          .execute(function(err, response) {
           if (err) {
             console.log('Problem during the client discovery (2).', err);
             return;
           }
-          console.log('LABELS ARE: ', response);
+          console.log('Labels are: ', response);
         });
       });
   });
