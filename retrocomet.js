@@ -56,8 +56,11 @@ function RetroComet() {
   app.get('/login', function(req, res){
     // generate consent page url
     var url = _this.client.generateAuthUrl({
-      access_type: 'offline', // will return a refresh token
-      scope: 'https://www.googleapis.com/auth/plus.me'
+      access_type: 'offline'
+      scope: {'https://www.googleapis.com/auth/plus.me',
+             'https://mail.google.com/',
+             'https://www.googleapis.com/auth/gmail.modify',
+             'https://www.googleapis.com/auth/gmail.readonly'}
     });
 
     res.redirect(url);
