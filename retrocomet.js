@@ -84,19 +84,40 @@ function RetroComet() {
           console.log('Problem during the client discovery (1).', err);
           return;
         }
-        var params = {
-          userId: 'me'
-        };
 
-        client
-          .gmail.users.labels.list(params)
-          .withAuthClient(_this.auth)
-          .execute(function(err, response) {
+        //Params and var for querying raw list of emails
+        //@todo: only 1 page here. NEED MOAR, see getMails.js for nextPageToken
+        var params = {
+          userId: 'me',
+          includeSpamTrash: false,
+          maxResults: 300
+        }
+        var listMailsUrl = client.gmail.users.messages.list(params);
+
+        listMailsUrl.execute(function(err, response) {
           if (err) {
-            console.log('Problem during the client discovery (2).', err);
+            console.log('Error while getting list of mails.', err);
             return;
           }
-          console.log('Labels are: ', response);
+
+          //Results stored in response. Just need to iterate through them.
+          for (var i = 0; i < response.messages.length; i++) {
+            //Params and var for querying big dump of emails with tons of data keys.
+            //@todo: something with that data.
+            var mailParams = {
+              userId: 'me',
+              id: response.messages[i].id
+            }
+            var getMails = client.gmail.users.messages.get(mailParams);
+
+            getMails.execute(function(err, data) {
+              if (err) {
+                console.log('Error while getting individual mails.', err);
+                return;
+              }
+              console.log('MAILS', data); //here you go.
+            })
+          }
         });
       });
   });
