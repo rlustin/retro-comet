@@ -52,6 +52,13 @@ function RetroComet() {
   });
   app.set('view engine', 'jade');
 
+  app.get('/', function(req, res) {
+    var locals = {
+      loginUri: '/login'
+    };
+    res.render('index', locals);
+  });
+
   /**
    * Entry point for getting the access token.
    */
